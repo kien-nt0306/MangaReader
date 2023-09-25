@@ -1,11 +1,10 @@
 import { SafeAreaView, Text } from "react-native"
+import DragAbleSortList from "../../components/DragAbleSortListGenre"
 
-const FavoriteGenreScreen = () => {
+const FavoriteGenreScreen = ({navigation}) => {
     return (
-        <SafeAreaView>
-            <Text>
-                This is favorite genre screen
-            </Text>
+        <SafeAreaView style={{ width: '100%', height: '100%' }}>
+            <DragAbleSortList navigation={navigation}></DragAbleSortList>
         </SafeAreaView>
     )
 }

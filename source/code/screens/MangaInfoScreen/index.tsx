@@ -5,11 +5,135 @@ import { ScrollView } from "react-native"
 import { withDecay } from "react-native-reanimated"
 import { TouchableOpacity } from "react-native"
 import LinearGradient from "react-native-linear-gradient"
-const MangaInfoScreen = ({ navigation }) => {
+import { useEffect, useState } from "react"
+import CONSTS from "../../Consts/const"
+import axios from "axios"
+import { storage } from "../../mmkv"
+import convertToPDF from "../../utils/convertImgLinksToPdf"
+import saveImagesFromURLs from "../../utils/saveImageFromUrls"
+const MangaInfoScreen = ({ navigation, route }) => {
+    const { mangaName, desc, mangaid } = route.params
+    
+    const [mangaInfo, setMangaInfo] = useState()
+    const [isLiked, setIsLiked] = useState(false)
+    const [isSaved, setIsSaved] = useState(false)
+    useEffect(() => {
+        try {
+            const fetchMangaInfo = async () => {
+                const response = await axios.get(CONSTS.CONSUMENET_BASE_URL + '/manga/mangadex/info/' + mangaid)
+                console.log(response.data)
+                setMangaInfo(response.data)
+
+            }
+            fetchMangaInfo()
+
+        } catch (err) {
+            console.log(err)
+
+        }
+
+
+    }, [])
+    useEffect(() => {
+        if (!storage.contains(CONSTS.LIKE_KEY)) {
+            setIsLiked(false)
+        }
+        else {
+            const currentLiked = JSON.parse(storage.getString(CONSTS.LIKE_KEY))
+            if (currentLiked.includes(mangaid)) {
+                setIsLiked(true)
+
+            } else {
+                setIsLiked(false)
+            }
+        }
+        if (!storage.contains(CONSTS.SAVE_KEY)) {
+            setIsSaved(false)
+        }
+        else {
+            const currentLiked = JSON.parse(storage.getString(CONSTS.SAVE_KEY))
+            if (currentLiked.includes(mangaid)) {
+                setIsSaved(true)
+
+            } else {
+                setIsSaved(false)
+            }
+        }
+    }, [])
+
+    const handleLike = () => {
+        if (!storage.contains(CONSTS.LIKE_KEY)) {
+            const temp = []
+            temp.push(mangaid)
+            storage.set(CONSTS.LIKE_KEY, JSON.stringify(temp))
+            setIsLiked(true)
+        }
+        else {
+            const currentLiked = JSON.parse(storage.getString(CONSTS.LIKE_KEY))
+            if (currentLiked.indexOf(mangaid) !== -1) {
+                // hande if in array
+
+                const newArray = currentLiked.filter((item: string) => item !== mangaid);
+                storage.set(CONSTS.LIKE_KEY, JSON.stringify(newArray))
+                setIsLiked(false)
+
+            } else {
+                // handle if not in array
+                currentLiked.push(mangaid)
+                storage.set(CONSTS.LIKE_KEY, JSON.stringify(currentLiked))
+                setIsLiked(true)
+
+            }
+        }
+
+    }
+    const handleSave = async () => {
+        const list_image_links = []
+        console.log()
+        for (let i = 0; i < mangaInfo.chapters.length; i++) {
+            const response = await axios.get(CONSTS.CONSUMENET_BASE_URL + '/manga/mangadex/read/' + mangaInfo.chapters[i].id)
+            const data = response.data
+            console.log(data)
+            const chapterImage = []
+
+            for (let j = 0; j < data.length; j++) {
+                chapterImage.push(data[j].img)
+            }
+            await saveImagesFromURLs(chapterImage, mangaid, 'chapter_' + i)
+
+
+        }
+
+
+        if (!storage.contains(CONSTS.SAVE_KEY)) {
+            const temp = []
+            temp.push(mangaid)
+            storage.set(CONSTS.SAVE_KEY, JSON.stringify(temp))
+            setIsSaved(true)
+        }
+        else {
+            const currentLiked = JSON.parse(storage.getString(CONSTS.SAVE_KEY))
+            if (currentLiked.indexOf(mangaid) !== -1) {
+                // hande if in array
+
+                const newArray = currentLiked.filter((item: string) => item !== mangaid);
+                storage.set(CONSTS.LIKE_KEY, JSON.stringify(newArray))
+                setIsSaved(false)
+
+            } else {
+                // handle if not in array
+                currentLiked.push(mangaid)
+                storage.set(CONSTS.LIKE_KEY, JSON.stringify(currentLiked))
+                setIsSaved(true)
+
+            }
+        }
+
+    }
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <View style={{ width: '100%', aspectRatio: 12.8 / 18.2, backgroundColor: 'blue' }}>
-                <Image source={require('../../../assets/manga_pannel/Wotakoi.jpg')} style={{ width: '100%', height: '100%' }} resizeMode="stretch"></Image>
+                <Image source={{ uri: mangaInfo?.image }} style={{ width: '100%', height: '100%' }} resizeMode="stretch"></Image>
 
             </View>
             <View style={{ height: '55%', width: '100%', backgroundColor: '#E1D9D1', bottom: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, position: 'absolute', zIndex: 2 }}>
@@ -32,31 +156,37 @@ const MangaInfoScreen = ({ navigation }) => {
 
                         <View style={{ flex: 8, backgroundColor: '#E1D9D1', justifyContent: 'center', alignItems: 'flex-start', paddingLeft: 10 }}>
                             <Text style={{ color: 'orange', fontSize: 30, fontWeight: '600' }}>
-                                Wotakoi: Love is hard with Otaku
+                                {
+                                    mangaInfo?.title
+                                }
                             </Text>
                             <Text style={{ color: 'orange', fontSize: 12, fontStyle: 'italic' }}>
-                                Chapter : 34 | by Omaza Kanzaki
+                                Chapter :{mangaInfo?.chapters?.length}| by Omaza Kanzaki
                             </Text>
                         </View>
                         <View style={{ flex: 2, justifyContent: 'center', alignItems: 'center' }}>
-                            <HeartIcon width={28} height={28} fill={'red'}></HeartIcon>
-
+                            <TouchableOpacity onPress={handleLike}>
+                                <HeartIcon width={28} height={28} fill={isLiked ? 'red' : 'white'}></HeartIcon>
+                            </TouchableOpacity>
                         </View>
                     </View>
                     <View style={{ flex: 1, backgroundColor: '#E1D9D1', paddingHorizontal: 10, paddingBottom: 60 }}>
                         <Text style={{ color: 'orange' }}>
-                            Having slept through all four of her alarms, the energetic Narumi Momose finds herself running late for her first day of work at a new office. As she races to catch her train, she makes a promise to herself that none of her coworkers will find out about her dark secret: that she is an otaku and a fujoshi. Her plan goes instantly awry, though, when she runs into Hirotaka Nifuji, an old friend from middle school. Although she tries to keep her secret by inviting him out for drinks after work, her cover is blown when he casually asks her whether or not she will be attending the upcoming Summer Comiket. Luckily for her, the only witnesses—Hanako Koyanagi and Tarou Kabakura—are otaku as well.
+                            {
+                                mangaInfo?.description?.en
+                            }
 
-                            Later that night, the pair go out for drinks so that they can catch up after all the years apart. After Narumi complains about her previous boyfriend breaking up with her because he refused to date a fujoshi, Hirotaka suggests that she try dating a fellow otaku, specifically himself. He makes a solemn promise to always be there for her, to support her, and to help her farm for rare drops in Monster Hunter. Blown away by the proposal, Narumi agrees immediately. Thus the two otaku start dating, and their adorably awkward romance begins.
                         </Text>
 
                     </View>
                 </ScrollView>
                 <LinearGradient colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']} style={{ height: 60, width: '100%', position: 'absolute', gap: 20, bottom: 0, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                    <View style={{ height: 40, width: 40, borderRadius: 10000, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFD580' }} >
-                        <SaveIcon width={32} height={32} fill={'orange'}></SaveIcon>
-                    </View>
-                    <TouchableOpacity onPress={() =>  { navigation.navigate('MangaReaderScreen') } } style={{ width: 180, height: 40, borderRadius: 10, backgroundColor: 'orange', justifyContent: 'center', alignItems: 'center' }}>
+                    <TouchableOpacity onPress={handleSave}>
+                        <View style={{ height: 40, width: 40, borderRadius: 10000, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFD580' }} >
+                            <SaveIcon width={32} height={32} fill={isSaved ? 'orange' : 'white'}></SaveIcon>
+                        </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { navigation.navigate('MangaReaderScreen', { mangaid: mangaid, chapters: mangaInfo.chapters }) }} style={{ width: 180, height: 40, borderRadius: 10, backgroundColor: 'orange', justifyContent: 'center', alignItems: 'center' }}>
 
                         <Text style={{ color: 'white', fontWeight: "800" }}>
                             Read this manga

@@ -10,7 +10,7 @@ const FavoriteScreen = () => {
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <Stack.Navigator>
-                <Stack.Screen name='Favorite' component={Favorite} />
+                <Stack.Screen name='Favorite' component={Favorite} options={{ headerShown: false }} />
                 <Stack.Screen name="FavoriteAuthor" component={FavoriteAuthorScreen} />
                 <Stack.Screen name="FavoriteGenre" component={FavoriteGenreScreen} />
             </Stack.Navigator>

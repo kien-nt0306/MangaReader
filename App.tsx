@@ -35,6 +35,11 @@ import FavoriteGenreScreen from './source/code/screens/FavoriteGenreScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ChooseFavoriteGenreScreen from './source/code/screens/ChooseFavoriteGenreScreen';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Riveo } from './source/code/components/pagecurl';
+import SavedMangaScreen from './source/code/screens/SavedMangaScreen';
+import OfflineReaderScreen from './source/code/screens/OfflineReaderScreen';
+import LoginScreen from './source/code/screens/LoginScreen';
+import SettingScreen from './source/code/screens/SettingScreen';
 
 function App(): JSX.Element {
   const Stack = createNativeStackNavigator();
@@ -44,6 +49,7 @@ function App(): JSX.Element {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <NavigationContainer>
           <Stack.Navigator>
+            {/* <Stack.Screen name='riveo' component={Riveo}></Stack.Screen> */}
             <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={
               {
                 headerShown: false
@@ -54,7 +60,10 @@ function App(): JSX.Element {
             }} />
             <Stack.Screen name="MangaInfoScreen" component={MangaInfoScreen} />
             <Stack.Screen name="MangaReaderScreen" component={MangaReaderScreen} />
-            <Stack.Screen name="AccountScreen" component={AccountScreen} />
+            <Stack.Screen name="SavedMangaScreen" component={SavedMangaScreen} />
+            <Stack.Screen name='OfflineReaderScreen' component={OfflineReaderScreen} />
+            <Stack.Screen name='SettingScreen' component={SettingScreen} />
+            <Stack.Screen name="AccountScreen" component={LoginScreen} />
             <Stack.Screen name="SearchScreen" component={SearchScreen} />
             <Stack.Screen name="AuthorsScreen" component={AuthorsScreen} />
             <Stack.Screen name="AuthorInfoScreen" component={AuthorInfoScreen} />

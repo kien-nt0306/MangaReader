@@ -11,6 +11,8 @@ import HomeIcon from '../../../assets/svg/home.svg';
 import ChartIcon from '../../../assets/svg/chart.svg';
 import SaveIcon from '../../../assets/svg/bookmark.svg';
 import AccountIcon from '../../../assets/svg/account.svg';
+import LoginScreen from "../LoginScreen";
+import store from "../../redux/stores";
 
 const Home = () => {
 
@@ -24,7 +26,7 @@ const Home = () => {
                     height: 60
                 },
                 tabBarShowLabel: false,
-                
+
             }}>
                 <Tab.Screen name="HomeScreen" component={HomeScreen} options={{
                     headerShown: false, tabBarLabel: 'Home', tabBarIcon: ({ color }) => (
